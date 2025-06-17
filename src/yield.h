@@ -21,6 +21,14 @@ typedef void (*WorkFunc)(struct WorkItem*);
 void YieldItem(WorkItem* item);
 int ContinueHere(WorkItem* item);
 
+#define YIELD_AFTER(block) \
+    do { \
+        if (ContinueHere(item)) { \
+            block \
+            return YieldItem(item); \
+        } \
+    } while(0)
+
 // -- Work queue --
 
 #define MAX_WORK_ITEMS 1000
