@@ -1,6 +1,8 @@
 #ifndef yield_h
 #define yield_h
 
+#include <stdbool.h>
+
 // -- Work items --
 
 typedef enum {
@@ -14,32 +16,19 @@ typedef struct WorkItem {
     int here;
     YieldState yieldState;
     void (*DoWork)(struct WorkItem*); // passes in self
+    struct WorkItem* child;
 } WorkItem;
 
 typedef void (*WorkFunc)(struct WorkItem*);
 
 void YieldItem(WorkItem* item);
-int ContinueHere(WorkItem* item);
-
-#define YIELD_AFTER(block) \
-    do { \
-        if (ContinueHere(item)) { \
-            block \
-            return YieldItem(item); \
-        } \
-    } while(0)
+bool ContinueHere(WorkItem* item);
+bool WaitForFunc(WorkItem* item, WorkFunc fn);
 
 // -- Work queue --
 
-#define MAX_WORK_ITEMS 1000
-
-typedef struct {
-    WorkItem items[MAX_WORK_ITEMS];
-    int count;
-    int pending;
-} WorkItemQueue;
-
-void QueueWorkFunc(WorkItemQueue* queue, WorkFunc fn);
-void ProcessWorkItems(WorkItemQueue *queue);
+void QueueWorkFunc(WorkFunc fn);
+void QueueWorkItem(WorkItem* item);
+void ProcessWorkItems();
 
 #endif

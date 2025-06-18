@@ -1,27 +1,34 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include "yield.h"
 
+void DoSlowNetworkCall(WorkItem* item) {
+    if(ContinueHere(item)) {
+        printf("A child - Started slow network call\n");
+        return YieldItem(item);
+    };
+    printf("A child  - Ended slow network call\n");
+}
+
 void DoThingA(WorkItem* item) {
-    YIELD_AFTER(
-        printf("A 1\n");
-    );
-    YIELD_AFTER(
-        printf("A 2\n");
-    );
-    printf("A 3\n");
+    if (ContinueHere(item)) {
+        printf("A - Started\n");
+        bool didYield = WaitForFunc(item, DoSlowNetworkCall);
+        if (didYield) {
+            return YieldItem(item);
+        }
+    }
+    printf("A - Done waiting for child\n");
+    printf("A - Ended\n");
 }
 
 void DoThingB(WorkItem* item) {
-    YIELD_AFTER(
-        printf("B 1\n");
-    );
-    printf("B 2\n");
-    printf("B 3\n");
+    printf("B - Started\n");
+    printf("B - Ended\n");
 }
 
 int main() {
-    WorkItemQueue queue = {0};
-    QueueWorkFunc(&queue, &DoThingA);
-    QueueWorkFunc(&queue, &DoThingB);
-    ProcessWorkItems(&queue);
+    QueueWorkFunc(&DoThingA);
+    QueueWorkFunc(&DoThingB);
+    ProcessWorkItems();
 }
