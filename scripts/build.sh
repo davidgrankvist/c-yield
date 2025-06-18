@@ -2,4 +2,4 @@
 
 mkdir -p bin
 
-gcc src/*.c -I src/ -o bin/yield
+gcc src/*.c -I src/ -g -o bin/yield
